@@ -145,7 +145,8 @@ class RssRenderer implements RendererInterface
     {
         $nodeItem = $this->createItem($xml);
         $xml->addTextNode('title', $item->getFeedTitle(), $nodeItem);
-        $xml->addTextNode('description', $item->getFeedDescription(), $nodeItem);
+        $wrapInCdata = $this->useCdataForElement($item, 'feedDescription');
+        $xml->addTextNode('description', $item->getFeedDescription(), $nodeItem, $wrapInCdata);
 
         $id=$item->getFeedId();
         if(empty($id))
@@ -283,4 +284,11 @@ class RssRenderer implements RendererInterface
         }
     }
 
+    private function useCdataForElement($item, $elementName)
+    {
+        if ($this->itemHas($item, 'useCdataForElement')) {
+            return $item->useCdataForElement($elementName);
+        }
+        return false;
+    }
 }

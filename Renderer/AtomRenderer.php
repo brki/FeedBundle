@@ -118,7 +118,13 @@ class AtomRenderer implements RendererInterface {
 		$xml->addTextNode('title', $item->getFeedTitle(), $nodeItem);
 
 		$type = $this->itemHas($item, 'getAtomContentType') ? $item->getAtomContentType() : null;
-		$content = $xml->addTextNode('content', $type === 'xhtml' ? $item->getFeedDescription() : htmlentities($item->getFeedDescription(), ENT_COMPAT, 'UTF-8'), $nodeItem);
+        $wrapInCdata = $this->useCdataForElement($item, 'feedDescription');
+        $feedDescription = $item->getFeedDescription();
+        if ($type === 'xhtml' || $wrapInCdata) {
+		    $content = $xml->addTextNode('content', $feedDescription, $nodeItem, $wrapInCdata);
+        } else {
+		    $content = $xml->addTextNode('content', htmlentities($item->getFeedDescription(), ENT_COMPAT, 'UTF-8'), $nodeItem);
+        }
 		if(!empty($type)){
 			$content->setAttribute('type', $type);
 		}
@@ -146,7 +152,12 @@ class AtomRenderer implements RendererInterface {
 		}
 		if ($this->itemHas($item, 'getSummary')) {
 			$type = $this->itemHas($item, 'getAtomSummaryType') ? $item->getAtomSummaryType() : null;
-			$summary = $xml->addTextNode('category', $type === 'xhtml' ? $item->getFeedDescription() : htmlentities($item->getFeedSummary(), ENT_COMPAT, 'UTF-8'), $nodeItem);
+            if ($type === 'xhtml') {
+                $wrapInCdata = $this->useCdataForElement($item, 'feedDescription');
+                $summary = $xml->addTextNode('category', $item->getFeedDescription(), $nodeItem, $wrapInCdata);
+            } else {
+                $summary = $xml->addTextNode('category', htmlentities($item->getFeedSummary(), ENT_COMPAT, 'UTF-8'), $nodeItem);
+            }
 			if(!empty($type)){
 				$summary->setAttribute('type', $type);
 			}
@@ -276,4 +287,12 @@ class AtomRenderer implements RendererInterface {
 			return false;
 		}
 	}
+
+    private function useCdataForElement($item, $elementName)
+    {
+        if ($this->itemHas($item, 'useCdataForElement')) {
+            return $item->useCdataForElement($elementName);
+        }
+        return false;
+    }
 }

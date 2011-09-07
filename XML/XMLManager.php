@@ -22,12 +22,17 @@ class XMLManager
         }
     }
 
-    public function addTextNode($nodeName, $content, \DOMNode $parentNode)
+
+    public function addTextNode($nodeName, $content, \DOMNode $parentNode, $wrapInCdata=false)
     {
         $node = $this->xml->createElement($nodeName);
         $node = $parentNode->appendChild($node);
 
-        $node_text = $this->xml->createTextNode($content);
+        if ($wrapInCdata) {
+            $node_text = $this->xml->createCDATASection($content);
+        } else {
+            $node_text = $this->xml->createTextNode($content);
+        }
         $node->appendChild($node_text);
 
         return $node;
